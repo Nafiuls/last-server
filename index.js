@@ -7,7 +7,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.oal61s0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -26,10 +26,15 @@ async function run() {
     // all databases
     const neonDb = client.db('Neon');
     const userCollection = neonDb.collection('users');
+    const assetsCollection = neonDb.collection('assets');
 
     // add a user to the user database
     app.post('/users', async (req, res) => {
       const user = req.body;
+      const email = req.body.email;
+      if (await userCollection.findOne({ email: email })) {
+        return res.status(400).send({ message: 'User already exists' });
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
@@ -40,6 +45,37 @@ async function run() {
       const email = req.params.email;
       const query = { email: email };
       const result = await userCollection.findOne(query);
+      res.send(result);
+    });
+
+    // Only HR manger related api's
+    app.post('/addAssets', async (req, res) => {
+      const asset = req.body;
+      const result = await assetsCollection.insertOne(asset);
+      res.send(result);
+    });
+
+    // load assets list with the hr email
+    app.get('/assetsList/hr/:email', async (req, res) => {
+      const email = req.params.email;
+      const { type, search } = req.query;
+      let query = { ownerEmail: email };
+      if (type) {
+        query.productType = type;
+      }
+      if (search) {
+        query.name = { $regex: search, $options: 'i' };
+      }
+      const result = await assetsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // delete a asset
+    app.delete('/deleteAssets/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await assetsCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
       res.send(result);
     });
 
