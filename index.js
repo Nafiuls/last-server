@@ -79,6 +79,25 @@ async function run() {
       res.send(result);
     });
 
+    // get request for loading a single asset with id
+    app.get('/assets/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await assetsCollection.findOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+    // update a specific asset
+    app.put('/assetUpdate/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const { name, quantity, productType } = req.body;
+      const updateDoc = {
+        $set: { name: name, quantity: quantity, productType: productType },
+      };
+      const result = await assetsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db('admin').command({ ping: 1 });
     // console.log(
