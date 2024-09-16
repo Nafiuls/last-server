@@ -27,6 +27,7 @@ async function run() {
     const neonDb = client.db('Neon');
     const userCollection = neonDb.collection('users');
     const assetsCollection = neonDb.collection('assets');
+    const employeeCollection = neonDb.collection('employee');
 
     // add a user to the user database
     app.post('/users', async (req, res) => {
@@ -95,6 +96,35 @@ async function run() {
         $set: { name: name, quantity: quantity, productType: productType },
       };
       const result = await assetsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    // fetch role=employee users
+    app.get('/employeeList/:role', async (req, res) => {
+      const role = req.params.role;
+      const query = { role: role };
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // add a employee in the employee collection
+    app.post('/addEmployee', async (req, res) => {
+      const employee = req.body;
+      const { email } = employee;
+      const isExist = await employeeCollection.findOne({ email: email });
+      if (isExist) {
+        return res.status(400).send({ message: 'Employee already exists' });
+      }
+      const result = await employeeCollection.insertOne(employee);
+      res.send(result);
+    });
+
+    // get a specific hr's employees data from the employee collection with the use of hr's email
+    app.get('/employeeList/hr/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await employeeCollection
+        .find({ HrEmail: email })
+        .toArray();
       res.send(result);
     });
 
