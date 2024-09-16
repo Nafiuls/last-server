@@ -128,6 +128,15 @@ async function run() {
       res.send(result);
     });
 
+    // delete a employee from the employee collection using id
+    app.delete('/delete/employee/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await employeeCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db('admin').command({ ping: 1 });
     // console.log(
