@@ -28,6 +28,7 @@ async function run() {
     const userCollection = neonDb.collection('users');
     const assetsCollection = neonDb.collection('assets');
     const employeeCollection = neonDb.collection('employee');
+    const requestedCollection = neonDb.collection('requestedAsset');
 
     // add a user to the user database
     app.post('/users', async (req, res) => {
@@ -107,6 +108,13 @@ async function run() {
       res.send(result);
     });
 
+    // get employee info
+    app.get('/employeeInfo/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await employeeCollection.findOne({ email: email });
+      res.send(result);
+    });
+
     // add a employee in the employee collection
     app.post('/addEmployee', async (req, res) => {
       const employee = req.body;
@@ -134,6 +142,16 @@ async function run() {
       const result = await employeeCollection.deleteOne({
         _id: new ObjectId(id),
       });
+      res.send(result);
+    });
+    // ------------------Employee related api routes----------------------//
+
+    // get asset for employee with his hremail
+    app.get('/employee/asset/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await assetsCollection
+        .find({ ownerEmail: email })
+        .toArray();
       res.send(result);
     });
 
