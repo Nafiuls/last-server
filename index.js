@@ -144,6 +144,14 @@ async function run() {
       });
       res.send(result);
     });
+
+    // get assets request from the requested collection with hr email
+    app.get('/requested/hr/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { queryEmail: email };
+      const result = await requestedCollection.find(query).toArray();
+      res.send(result);
+    });
     // ------------------Employee related api routes----------------------//
 
     // get asset for employee with his hremail
@@ -152,6 +160,21 @@ async function run() {
       const result = await assetsCollection
         .find({ ownerEmail: email })
         .toArray();
+      res.send(result);
+    });
+
+    // post a requested item on requestAssets database
+    app.post('/requestAssets', async (req, res) => {
+      const requestedItem = req.body;
+      const id = req.body.assetId;
+      const query = { assetId: id };
+      const isExist = await requestedCollection.findOne(query);
+      if (isExist) {
+        return res
+          .status(400)
+          .send({ message: 'Asset already been requested' });
+      }
+      const result = await requestedCollection.insertOne(requestedItem);
       res.send(result);
     });
 
